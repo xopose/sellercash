@@ -1,0 +1,426 @@
+﻿<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SellerCash Dashboard</title>
+  <style>
+    :root {
+      --bg: #f3f5ef;
+      --panel: #ffffff;
+      --ink: #1d2a1f;
+      --accent: #2f6a41;
+      --accent-soft: #d7ebdb;
+      --warn: #b14d1f;
+      --border: #d8dfd2;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 15% 10%, #ffffff 0%, var(--bg) 65%);
+      color: var(--ink);
+    }
+
+    header {
+      padding: 24px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(120deg, #f8faf6 0%, #e7f1e8 100%);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 30px;
+      letter-spacing: 0.2px;
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      color: #3e4d40;
+    }
+
+    .toolbar {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .toolbar label {
+      font-size: 13px;
+      margin-right: 6px;
+    }
+
+    .toolbar input {
+      min-width: 180px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 8px 10px;
+      background: #fff;
+    }
+
+    .toolbar button {
+      padding: 8px 14px;
+      border-radius: 9px;
+      border: none;
+      background: #365f72;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .toolbar button:hover {
+      filter: brightness(1.05);
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+      padding: 16px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 8px 20px rgba(33, 51, 37, 0.05);
+    }
+
+    .card h2 {
+      margin-top: 0;
+      font-size: 20px;
+    }
+
+    form {
+      display: grid;
+      gap: 8px;
+    }
+
+    label {
+      font-size: 13px;
+      color: #3a463c;
+    }
+
+    input, button, textarea {
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      padding: 10px;
+      font-size: 14px;
+    }
+
+    button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button:hover {
+      filter: brightness(1.05);
+    }
+
+    pre {
+      margin: 10px 0 0;
+      background: #f6f8f3;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 10px;
+      max-height: 280px;
+      overflow: auto;
+      font-size: 12px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .warning {
+      color: var(--warn);
+      font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+      header { padding: 16px; }
+      h1 { font-size: 24px; }
+      main { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>SellerCash MVP</h1>
+    <div class="subtitle">Прогноз кассового разрыва + сценарии + документные сигналы (Lucene/OpenSearch)</div>
+    <div class="toolbar">
+      <label for="sellerCode">Seller code</label>
+      <input type="text" id="sellerCode" value="default" />
+      <button id="loadContextBtn">Показать seller context</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>0) Seller Context</h2>
+      <pre id="contextResult">Контекст не загружен.</pre>
+    </section>
+
+    <section class="card">
+      <h2>1) Импорт финансовой ленты</h2>
+      <form id="financeForm">
+        <label>CSV/XLSX файл с колонками дата, тип, сумма</label>
+        <input type="file" id="financeFile" accept=".csv,.xls,.xlsx" required />
+        <button type="submit">Загрузить</button>
+      </form>
+      <pre id="financeResult">Ожидание импорта...</pre>
+    </section>
+
+    <section class="card">
+      <h2>2) Прогноз cashflow</h2>
+      <form id="forecastForm">
+        <label>Горизонт (дни)</label>
+        <input type="number" id="horizon" value="60" min="7" max="120" />
+        <label>Стартовый остаток</label>
+        <input type="number" id="startBalance" value="150000" />
+        <button type="submit">Рассчитать прогноз</button>
+      </form>
+      <pre id="forecastResult">Ожидание расчёта...</pre>
+    </section>
+
+    <section class="card">
+      <h2>3) Сценарий действий</h2>
+      <form id="scenarioForm">
+        <label>Реклама (%): -0.15 = -15%</label>
+        <input type="number" step="0.01" id="adsDelta" value="-0.15" />
+        <label>Цена (%): 0.05 = +5%</label>
+        <input type="number" step="0.01" id="priceDelta" value="0" />
+        <label>Сдвиг закупки (дней)</label>
+        <input type="number" id="procShift" value="7" />
+        <label>Изменение объёма закупки (%): -0.1 = -10%</label>
+        <input type="number" step="0.01" id="procDelta" value="-0.1" />
+        <button type="submit">Оценить сценарий</button>
+      </form>
+      <pre id="scenarioResult">Ожидание сценария...</pre>
+    </section>
+
+    <section class="card">
+      <h2>4) Knowledge Layer: загрузка документа</h2>
+      <form id="docForm">
+        <label>PDF/TXT/HTML с правилами, комиссиями, выплатами</label>
+        <input type="file" id="docFile" required />
+        <button type="submit">Индексировать</button>
+      </form>
+      <pre id="docResult">Документ не загружен.</pre>
+    </section>
+
+    <section class="card">
+      <h2>5) Поиск по документам (BM25)</h2>
+      <form id="searchForm">
+        <label>Запрос: комиссия, выплаты, штраф, логистика...</label>
+        <input type="text" id="searchQuery" value="комиссия" required />
+        <button type="submit">Искать</button>
+      </form>
+      <pre id="searchResult">Поиск не запущен.</pre>
+    </section>
+
+    <section class="card">
+      <h2>6) Объяснение драйверов</h2>
+      <button id="explainBtn">Показать драйверы</button>
+      <pre id="explainResult">Ожидание запроса...</pre>
+    </section>
+
+    <section class="card">
+      <h2>7) Внешний сигнал (Interfax webhook)</h2>
+      <form id="signalForm">
+        <label>Система-источник</label>
+        <input type="text" id="signalSource" value="interfax" />
+        <label>Заголовок</label>
+        <input type="text" id="signalTitle" value="На границе с Турцией задержаны все фуры с помидорами" />
+        <label>Текст сигнала</label>
+        <textarea id="signalBody" rows="5">Ожидаемая задержка поставки 10 дней. Риск дефицита томатов в ближайшие 2 недели.</textarea>
+        <button type="submit">Отправить внешний сигнал</button>
+      </form>
+      <pre id="signalResult">Внешние сигналы не отправлялись.</pre>
+    </section>
+
+    <section class="card">
+      <h2>8) Влияние внешних сигналов</h2>
+      <button id="loadImpactsBtn">Показать impacts</button>
+      <pre id="impactsResult">Нет данных.</pre>
+    </section>
+  </main>
+
+  <script>
+    const API = "/api/v1";
+
+    const pretty = (obj) => JSON.stringify(obj, null, 2);
+
+    async function request(url, options = {}) {
+      const response = await fetch(url, options);
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.detail || response.statusText);
+      }
+      return data;
+    }
+
+    document.getElementById("financeForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const out = document.getElementById("financeResult");
+      const file = document.getElementById("financeFile").files[0];
+      if (!file) return;
+      const form = new FormData();
+      form.append("file", file);
+      out.textContent = "Импортируем...";
+      try {
+        const data = await request(`${API}/finance/import`, { method: "POST", body: form });
+        out.textContent = pretty(data);
+      } catch (err) {
+        out.textContent = String(err);
+      }
+    });
+
+    document.getElementById("forecastForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const out = document.getElementById("forecastResult");
+      out.textContent = "Считаем прогноз...";
+      const payload = {
+        seller_code: document.getElementById("sellerCode").value.trim() || "default",
+        horizon_days: Number(document.getElementById("horizon").value),
+        start_balance: Number(document.getElementById("startBalance").value),
+      };
+      try {
+        const data = await request(`${API}/cashflow/forecast`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        out.textContent = pretty({
+          min_balance: data.min_balance,
+          min_balance_date: data.min_balance_date,
+          ending_balance: data.ending_balance,
+          alerts: data.alerts,
+          sample_points: data.points.slice(0, 5),
+        });
+      } catch (err) {
+        out.textContent = String(err);
+      }
+    });
+
+    document.getElementById("scenarioForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const out = document.getElementById("scenarioResult");
+      out.textContent = "Оцениваем сценарий...";
+      const payload = {
+        seller_code: document.getElementById("sellerCode").value.trim() || "default",
+        horizon_days: Number(document.getElementById("horizon").value),
+        start_balance: Number(document.getElementById("startBalance").value),
+        ads_delta_pct: Number(document.getElementById("adsDelta").value),
+        price_delta_pct: Number(document.getElementById("priceDelta").value),
+        procurement_shift_days: Number(document.getElementById("procShift").value),
+        procurement_delta_pct: Number(document.getElementById("procDelta").value),
+      };
+      try {
+        const data = await request(`${API}/cashflow/scenario`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        out.textContent = pretty(data);
+      } catch (err) {
+        out.textContent = String(err);
+      }
+    });
+
+    document.getElementById("docForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const out = document.getElementById("docResult");
+      const file = document.getElementById("docFile").files[0];
+      if (!file) return;
+      const form = new FormData();
+      form.append("file", file);
+      out.textContent = "Индексируем документ...";
+      try {
+        const data = await request(`${API}/knowledge/documents/upload`, { method: "POST", body: form });
+        out.textContent = pretty(data);
+      } catch (err) {
+        out.textContent = String(err);
+      }
+    });
+
+    document.getElementById("searchForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const out = document.getElementById("searchResult");
+      const query = document.getElementById("searchQuery").value;
+      out.textContent = "Ищем...";
+      try {
+        const data = await request(`${API}/knowledge/search?q=${encodeURIComponent(query)}&top_k=5`);
+        out.textContent = pretty(data);
+      } catch (err) {
+        out.textContent = String(err);
+      }
+    });
+
+    document.getElementById("explainBtn").addEventListener("click", async () => {
+      const out = document.getElementById("explainResult");
+      out.textContent = "Формируем объяснение...";
+      try {
+        const sellerCode = document.getElementById("sellerCode").value.trim() || "default";
+        const data = await request(`${API}/cashflow/explain?seller_code=${encodeURIComponent(sellerCode)}`);
+        out.textContent = pretty(data);
+      } catch (err) {
+        out.textContent = String(err);
+      }
+    });
+
+    document.getElementById("loadContextBtn").addEventListener("click", async () => {
+      const out = document.getElementById("contextResult");
+      out.textContent = "Загружаем seller context...";
+      try {
+        const sellerCode = document.getElementById("sellerCode").value.trim() || "default";
+        const data = await request(`${API}/context/items?seller_code=${encodeURIComponent(sellerCode)}`);
+        out.textContent = pretty(data);
+      } catch (err) {
+        out.textContent = String(err);
+      }
+    });
+
+    document.getElementById("signalForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const out = document.getElementById("signalResult");
+      out.textContent = "Отправляем внешний сигнал...";
+      const payload = {
+        source_system: document.getElementById("signalSource").value.trim() || "external_feed",
+        title: document.getElementById("signalTitle").value.trim(),
+        body: document.getElementById("signalBody").value.trim(),
+      };
+      try {
+        const data = await request(`${API}/knowledge/signals/ingest`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        out.textContent = pretty(data);
+      } catch (err) {
+        out.textContent = String(err);
+      }
+    });
+
+    document.getElementById("loadImpactsBtn").addEventListener("click", async () => {
+      const out = document.getElementById("impactsResult");
+      out.textContent = "Загружаем impacts...";
+      try {
+        const sellerCode = document.getElementById("sellerCode").value.trim() || "default";
+        const data = await request(`${API}/knowledge/impacts?seller_code=${encodeURIComponent(sellerCode)}&limit=20`);
+        out.textContent = pretty(data);
+      } catch (err) {
+        out.textContent = String(err);
+      }
+    });
+  </script>
+</body>
+</html>

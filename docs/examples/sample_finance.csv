@@ -1,0 +1,15 @@
+﻿date,type,amount,status
+2026-02-01,sale,12000,fact
+2026-02-01,ads,-1100,fact
+2026-02-02,sale,15000,fact
+2026-02-03,sale,13800,fact
+2026-02-03,return,-900,fact
+2026-02-04,logistics,-650,fact
+2026-02-05,sale,16200,fact
+2026-02-06,sale,17000,fact
+2026-02-06,storage,-240,fact
+2026-02-07,sale,14000,fact
+2026-02-08,sale,15500,fact
+2026-02-09,procurement,-20000,fact
+2026-02-10,sale,14800,fact
+2026-02-10,ads,-1000,fact

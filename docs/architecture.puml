@@ -1,0 +1,94 @@
+@startuml
+title SellerCash - Cashflow + External Signals Architecture
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+actor "Seller" as User
+actor "External Feed\n(Interfax-like)" as Feed
+
+package "Frontend" {
+  [Web Dashboard] as UI
+}
+
+package "Backend API (FastAPI)" {
+  [API Gateway] as API
+  [Finance Routes] as FinanceAPI
+  [Cashflow Routes] as CashflowAPI
+  [Context Routes] as ContextAPI
+  [Knowledge Routes] as KnowledgeAPI
+}
+
+package "Financial Core" {
+  [Importer\nCSV/XLSX] as Importer
+  [Normalizer\nFinance Ledger] as Normalizer
+}
+
+package "Seller Context Layer" {
+  [Seller Profile] as SellerProfile
+  [Seller Context Items\nSKU/Country/Route] as SellerContext
+}
+
+package "Knowledge & Signals Layer" {
+  [Document/URL Ingest] as Ingest
+  [Signal Webhook Ingest] as SignalWebhook
+  [Chunker] as Chunker
+  [Search API\nBM25] as Search
+  [Event Extractor] as Extractor
+  [Relevance Engine] as Relevance
+  [Parameter Translator] as Translator
+}
+
+package "Forecast & Decision Layer" {
+  [Forecast Engine] as Forecast
+  [Scenario Engine] as Scenario
+  [Explainability] as Explain
+}
+
+database "PostgreSQL\nfinance_events\ndocuments\nexternal_events\nexternal_signal_impacts\nseller_context" as PG
+database "OpenSearch\nLucene Index" as OS
+folder "MinIO\nRaw Files" as MinIO
+
+User --> UI
+UI --> API
+API --> FinanceAPI
+API --> CashflowAPI
+API --> ContextAPI
+API --> KnowledgeAPI
+
+FinanceAPI --> Importer
+Importer --> Normalizer
+Normalizer --> PG
+
+ContextAPI --> SellerProfile
+ContextAPI --> SellerContext
+SellerProfile --> PG
+SellerContext --> PG
+
+KnowledgeAPI --> Ingest
+KnowledgeAPI --> SignalWebhook
+KnowledgeAPI --> Search
+Ingest --> Chunker
+SignalWebhook --> Ingest
+Chunker --> OS
+Chunker --> PG : store chunks + docs
+Ingest --> MinIO
+Search --> OS
+Chunker --> Extractor
+Extractor --> PG : store external_events
+Extractor --> Relevance
+Relevance --> SellerContext
+Relevance --> Translator
+Translator --> PG : store external_signal_impacts
+
+Feed --> SignalWebhook
+
+CashflowAPI --> Forecast
+CashflowAPI --> Scenario
+CashflowAPI --> Explain
+Forecast --> PG : finance_events + impacts
+Scenario --> PG : finance_events + impacts
+Explain --> PG : drivers + evidence
+
+API --> UI
+@enduml
