@@ -1,425 +1,745 @@
-﻿<!doctype html>
+﻿
+<!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>SellerCash Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: '#17242a',
+            sea: '#0f5f7a',
+            mint: '#2f9e7b',
+            sand: '#f7f2e8',
+            line: '#d7e3de',
+            danger: '#c64a33'
+          },
+          fontFamily: {
+            ui: ['Manrope', 'sans-serif'],
+            display: ['Sora', 'sans-serif']
+          },
+          boxShadow: {
+            soft: '0 16px 40px rgba(11,48,62,.12)'
+          }
+        }
+      }
+    }
+  </script>
+  <script defer src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <style>
-    :root {
-      --bg: #f3f5ef;
-      --panel: #ffffff;
-      --ink: #1d2a1f;
-      --accent: #2f6a41;
-      --accent-soft: #d7ebdb;
-      --warn: #b14d1f;
-      --border: #d8dfd2;
+    [v-cloak]{display:none}
+    body{
+      font-family:'Manrope',sans-serif;
+      background:
+        radial-gradient(1000px 650px at 5% 0%, #dff1fa, transparent 55%),
+        radial-gradient(900px 600px at 100% 0%, #e7f7ee, transparent 55%),
+        linear-gradient(180deg,#f5f8f1,#f8f4ec);
+      color:#17242a;
+      min-height:100vh;
     }
-
-    * {
-      box-sizing: border-box;
-      font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+    .mesh{
+      position:fixed;inset:0;pointer-events:none;opacity:.28;
+      background-image:linear-gradient(rgba(255,255,255,.3) 1px, transparent 1px),linear-gradient(90deg,rgba(255,255,255,.3) 1px, transparent 1px);
+      background-size:30px 30px;
+      mask-image:radial-gradient(circle at 50% 0%, #000 55%, transparent 100%);
     }
-
-    body {
-      margin: 0;
-      background: radial-gradient(circle at 15% 10%, #ffffff 0%, var(--bg) 65%);
-      color: var(--ink);
+    .help-icon{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:16px;
+      height:16px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:700;
+      color:#0f5f7a;
+      background:#dceff5;
+      cursor:help;
+      margin-left:6px;
+      vertical-align:middle;
     }
-
-    header {
-      padding: 24px;
-      border-bottom: 1px solid var(--border);
-      background: linear-gradient(120deg, #f8faf6 0%, #e7f1e8 100%);
+    .field-label{
+      font-size:12px;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color:#5a696d;
+      margin-bottom:4px;
+      display:block;
     }
-
-    h1 {
-      margin: 0;
-      font-size: 30px;
-      letter-spacing: 0.2px;
-    }
-
-    .subtitle {
-      margin-top: 6px;
-      color: #3e4d40;
-    }
-
-    .toolbar {
-      margin-top: 14px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .toolbar label {
-      font-size: 13px;
-      margin-right: 6px;
-    }
-
-    .toolbar input {
-      min-width: 180px;
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      padding: 8px 10px;
-      background: #fff;
-    }
-
-    .toolbar button {
-      padding: 8px 14px;
-      border-radius: 9px;
-      border: none;
-      background: #365f72;
-      color: #fff;
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    .toolbar button:hover {
-      filter: brightness(1.05);
-    }
-
-    main {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 16px;
-      padding: 16px;
-    }
-
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 16px;
-      box-shadow: 0 8px 20px rgba(33, 51, 37, 0.05);
-    }
-
-    .card h2 {
-      margin-top: 0;
-      font-size: 20px;
-    }
-
-    form {
-      display: grid;
-      gap: 8px;
-    }
-
-    label {
-      font-size: 13px;
-      color: #3a463c;
-    }
-
-    input, button, textarea {
-      border-radius: 9px;
-      border: 1px solid var(--border);
-      padding: 10px;
-      font-size: 14px;
-    }
-
-    button {
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    button:hover {
-      filter: brightness(1.05);
-    }
-
-    pre {
-      margin: 10px 0 0;
-      background: #f6f8f3;
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      padding: 10px;
-      max-height: 280px;
-      overflow: auto;
-      font-size: 12px;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    .warning {
-      color: var(--warn);
-      font-weight: 600;
-    }
-
-    @media (max-width: 768px) {
-      header { padding: 16px; }
-      h1 { font-size: 24px; }
-      main { padding: 12px; }
-    }
+    @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .rise{animation:rise .45s ease forwards}
   </style>
 </head>
-<body>
-  <header>
-    <h1>SellerCash MVP</h1>
-    <div class="subtitle">Прогноз кассового разрыва + сценарии + документные сигналы (Lucene/OpenSearch)</div>
-    <div class="toolbar">
-      <label for="sellerCode">Seller code</label>
-      <input type="text" id="sellerCode" value="default" />
-      <button id="loadContextBtn">Показать seller context</button>
-    </div>
-  </header>
+<body class="font-ui">
+  <div class="mesh"></div>
 
-  <main>
-    <section class="card">
-      <h2>0) Seller Context</h2>
-      <pre id="contextResult">Контекст не загружен.</pre>
-    </section>
+  <div id="app" v-cloak class="relative z-10">
+    <header class="px-4 pt-6 pb-4 md:px-8 md:pt-8">
+      <div class="mx-auto max-w-7xl rounded-3xl border border-line/80 bg-white/85 p-6 shadow-soft backdrop-blur-md md:p-8">
+        <div>
+          <p class="mb-2 inline-flex rounded-full bg-sea/10 px-3 py-1 text-xs font-semibold uppercase tracking-[.16em] text-sea">Liquidity Intelligence</p>
+          <h1 class="font-display text-3xl font-semibold leading-tight md:text-4xl">SellerCash</h1>
+        </div>
 
-    <section class="card">
-      <h2>1) Импорт финансовой ленты</h2>
-      <form id="financeForm">
-        <label>CSV/XLSX файл с колонками дата, тип, сумма</label>
-        <input type="file" id="financeFile" accept=".csv,.xls,.xlsx" required />
-        <button type="submit">Загрузить</button>
-      </form>
-      <pre id="financeResult">Ожидание импорта...</pre>
-    </section>
+        <div class="mt-5 rounded-2xl border border-line bg-sand/70 p-4">
+          <p class="mb-3 text-sm font-semibold text-ink">Порядок действий</p>
+          <ol class="grid grid-cols-1 gap-2 text-sm text-ink/80 md:grid-cols-2 xl:grid-cols-3">
+            <li class="rounded-xl bg-white px-3 py-2"><b>1.</b> Заполни контекст бизнеса (SKU, страна, маршрут)</li>
+            <li class="rounded-xl bg-white px-3 py-2"><b>2.</b> Импортируй финансовую выгрузку</li>
+            <li class="rounded-xl bg-white px-3 py-2"><b>3.</b> Построй baseline-прогноз cashflow</li>
+            <li class="rounded-xl bg-white px-3 py-2"><b>4.</b> Добавь внешний сигнал/документ и выполни поиск</li>
+            <li class="rounded-xl bg-white px-3 py-2"><b>5.</b> Запусти сценарий и сравни риск</li>
+            <li class="rounded-xl bg-white px-3 py-2"><b>6.</b> Проверь объяснения и влияние факторов</li>
+          </ol>
+        </div>
+      </div>
+    </header>
 
-    <section class="card">
-      <h2>2) Прогноз cashflow</h2>
-      <form id="forecastForm">
-        <label>Горизонт (дни)</label>
-        <input type="number" id="horizon" value="60" min="7" max="120" />
-        <label>Стартовый остаток</label>
-        <input type="number" id="startBalance" value="150000" />
-        <button type="submit">Рассчитать прогноз</button>
-      </form>
-      <pre id="forecastResult">Ожидание расчёта...</pre>
-    </section>
+    <main class="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-4 pb-8 md:gap-5 md:px-8">
+      <section id="step-1" class="rise rounded-3xl border border-line bg-white/92 p-5 shadow-soft">
+        <div class="mb-4 flex items-center justify-between">
+          <h2 class="font-display text-xl font-semibold">Шаг 1. Контекст бизнеса</h2>
+          <span class="rounded-full bg-ink/10 px-3 py-1 text-xs font-semibold text-ink">Профиль</span>
+        </div>
 
-    <section class="card">
-      <h2>3) Сценарий действий</h2>
-      <form id="scenarioForm">
-        <label>Реклама (%): -0.15 = -15%</label>
-        <input type="number" step="0.01" id="adsDelta" value="-0.15" />
-        <label>Цена (%): 0.05 = +5%</label>
-        <input type="number" step="0.01" id="priceDelta" value="0" />
-        <label>Сдвиг закупки (дней)</label>
-        <input type="number" id="procShift" value="7" />
-        <label>Изменение объёма закупки (%): -0.1 = -10%</label>
-        <input type="number" step="0.01" id="procDelta" value="-0.1" />
-        <button type="submit">Оценить сценарий</button>
-      </form>
-      <pre id="scenarioResult">Ожидание сценария...</pre>
-    </section>
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <label>
+            <span class="field-label">SKU <span class="help-icon" title="Артикул или код товарной позиции продавца.">?</span></span>
+            <input v-model.trim="state.sku" placeholder="tomato_tr" :class="inputClass(contextFieldError('sku'))" />
+            <p v-if="contextFieldError('sku')" class="mt-1 text-xs font-medium text-danger">{{ contextFieldError('sku') }}</p>
+          </label>
+          <label>
+            <span class="field-label">Категория <span class="help-icon" title="Товарная категория, например vegetables.">?</span></span>
+            <input v-model.trim="state.category" placeholder="vegetables" :class="inputClass(contextFieldError('category'))" />
+            <p v-if="contextFieldError('category')" class="mt-1 text-xs font-medium text-danger">{{ contextFieldError('category') }}</p>
+          </label>
+          <label>
+            <span class="field-label">Страна происхождения <span class="help-icon" title="ISO код или название страны происхождения товара (например TR).">?</span></span>
+            <input v-model.trim="state.originCountry" placeholder="TR" :class="inputClass(contextFieldError('origin_country'))" />
+            <p v-if="contextFieldError('origin_country')" class="mt-1 text-xs font-medium text-danger">{{ contextFieldError('origin_country') }}</p>
+          </label>
+          <label>
+            <span class="field-label">Поставщик <span class="help-icon" title="Название или идентификатор поставщика.">?</span></span>
+            <input v-model.trim="state.supplierName" placeholder="turkey_supplier" :class="inputClass(contextFieldError('supplier_name'))" />
+            <p v-if="contextFieldError('supplier_name')" class="mt-1 text-xs font-medium text-danger">{{ contextFieldError('supplier_name') }}</p>
+          </label>
+          <label>
+            <span class="field-label">Маршрут <span class="help-icon" title="Логистический маршрут поставки, например TR-RU-road.">?</span></span>
+            <input v-model.trim="state.routeName" placeholder="TR-RU-road" :class="inputClass(contextFieldError('route_name'))" />
+            <p v-if="contextFieldError('route_name')" class="mt-1 text-xs font-medium text-danger">{{ contextFieldError('route_name') }}</p>
+          </label>
+          <label>
+            <span class="field-label">Ключевые слова товара <span class="help-icon" title="Слова для сопоставления внешних новостей с этой позицией: tomato, помидор и т.д.">?</span></span>
+            <input v-model.trim="state.productKeywords" placeholder="tomato,помидор,томаты" :class="inputClass(contextFieldError('product_keywords'))" />
+            <p v-if="contextFieldError('product_keywords')" class="mt-1 text-xs font-medium text-danger">{{ contextFieldError('product_keywords') }}</p>
+          </label>
+        </div>
 
-    <section class="card">
-      <h2>4) Knowledge Layer: загрузка документа</h2>
-      <form id="docForm">
-        <label>PDF/TXT/HTML с правилами, комиссиями, выплатами</label>
-        <input type="file" id="docFile" required />
-        <button type="submit">Индексировать</button>
-      </form>
-      <pre id="docResult">Документ не загружен.</pre>
-    </section>
+        <div class="mt-3 flex flex-col gap-2 sm:flex-row">
+          <button @click="addContext" :disabled="busy.addContext" class="w-full rounded-xl bg-mint px-3 py-2 text-sm font-semibold text-white hover:bg-mint/90 disabled:opacity-60">{{ busy.addContext ? '...' : 'Сохранить позицию в профиле' }}</button>
+          <button @click="loadContext" :disabled="busy.context" class="w-full rounded-xl bg-white px-3 py-2 text-sm font-semibold text-sea ring-1 ring-line hover:bg-sea/5 disabled:opacity-60">Обновить список профиля</button>
+        </div>
+        <p v-if="errors.context" class="mt-3 rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger">{{ errors.context }}</p>
 
-    <section class="card">
-      <h2>5) Поиск по документам (BM25)</h2>
-      <form id="searchForm">
-        <label>Запрос: комиссия, выплаты, штраф, логистика...</label>
-        <input type="text" id="searchQuery" value="комиссия" required />
-        <button type="submit">Искать</button>
-      </form>
-      <pre id="searchResult">Поиск не запущен.</pre>
-    </section>
+        <div class="mt-4 max-h-44 space-y-2 overflow-auto pr-1">
+          <article v-for="item in contextItems" :key="item.id" class="rounded-xl border border-line/80 bg-sand p-3">
+            <p class="font-semibold">{{ item.sku }} <span class="font-normal text-ink/60">({{ item.category || 'n/a' }})</span></p>
+            <p class="text-xs text-ink/65">{{ item.origin_country || '-' }} | {{ item.supplier_name || '-' }} | {{ item.route_name || '-' }}</p>
+          </article>
+          <p v-if="!contextItems.length" class="text-sm text-ink/55">Список контекста пока пуст.</p>
+        </div>
+      </section>
+      <section id="step-2" class="rise rounded-3xl border border-line bg-white/92 p-5 shadow-soft">
+        <div class="mb-4 flex items-center justify-between">
+          <h2 class="font-display text-xl font-semibold">Шаг 2. Импорт финансовой ленты</h2>
+          <span class="rounded-full bg-sea/10 px-3 py-1 text-xs font-semibold text-sea">Finance</span>
+        </div>
 
-    <section class="card">
-      <h2>6) Объяснение драйверов</h2>
-      <button id="explainBtn">Показать драйверы</button>
-      <pre id="explainResult">Ожидание запроса...</pre>
-    </section>
+        <label class="field-label">Файл финансовой выгрузки <span class="help-icon" title="CSV/XLSX файл с продажами, расходами, выплатами и др. денежными событиями.">?</span></label>
+        <input type="file" @change="onFinanceFile" class="w-full rounded-xl border border-line bg-white px-3 py-2 text-sm" />
+        <button @click="importFinance" :disabled="busy.finance" class="mt-3 w-full rounded-xl bg-sea px-3 py-2 text-sm font-semibold text-white hover:bg-sea/90 disabled:opacity-60">{{ busy.finance ? 'Импорт...' : 'Импортировать данные' }}</button>
+        <p v-if="errors.finance" class="mt-3 rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger">{{ errors.finance }}</p>
+      </section>
 
-    <section class="card">
-      <h2>7) Внешний сигнал (Interfax webhook)</h2>
-      <form id="signalForm">
-        <label>Система-источник</label>
-        <input type="text" id="signalSource" value="interfax" />
-        <label>Заголовок</label>
-        <input type="text" id="signalTitle" value="На границе с Турцией задержаны все фуры с помидорами" />
-        <label>Текст сигнала</label>
-        <textarea id="signalBody" rows="5">Ожидаемая задержка поставки 10 дней. Риск дефицита томатов в ближайшие 2 недели.</textarea>
-        <button type="submit">Отправить внешний сигнал</button>
-      </form>
-      <pre id="signalResult">Внешние сигналы не отправлялись.</pre>
-    </section>
+      <section id="step-3" class="rise rounded-3xl border border-line bg-white/92 p-5 shadow-soft">
+        <div class="mb-4 flex items-center justify-between">
+          <h2 class="font-display text-xl font-semibold">Шаг 3. Baseline-прогноз</h2>
+          <span class="rounded-full bg-mint/10 px-3 py-1 text-xs font-semibold text-mint">Forecast</span>
+        </div>
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <label>
+            <span class="field-label">Горизонт прогноза, дни <span class="help-icon" title="На сколько дней вперед считать cashflow.">?</span></span>
+            <input v-model.number="state.horizonDays" type="number" min="7" max="120" class="w-full rounded-xl border border-line px-3 py-2 outline-none focus:border-mint focus:ring-2 focus:ring-mint/20" />
+          </label>
+          <label>
+            <span class="field-label">Стартовый остаток, RUB <span class="help-icon" title="Денежный остаток на момент начала расчета.">?</span></span>
+            <input v-model.number="state.startBalance" type="number" class="w-full rounded-xl border border-line px-3 py-2 outline-none focus:border-mint focus:ring-2 focus:ring-mint/20" />
+          </label>
+        </div>
+        <button @click="runForecast" :disabled="busy.forecast" class="mt-4 w-full rounded-xl bg-mint px-4 py-2.5 text-sm font-semibold text-white hover:bg-mint/90 disabled:opacity-60">{{ busy.forecast ? 'Считаем...' : 'Построить baseline-прогноз' }}</button>
+        <p v-if="errors.forecast" class="mt-3 rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger">{{ errors.forecast }}</p>
 
-    <section class="card">
-      <h2>8) Влияние внешних сигналов</h2>
-      <button id="loadImpactsBtn">Показать impacts</button>
-      <pre id="impactsResult">Нет данных.</pre>
-    </section>
-  </main>
+        <div v-if="forecast" class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <article class="rounded-2xl bg-sand p-3">
+            <p class="text-xs uppercase tracking-[.12em] text-ink/60">Минимум остатка</p>
+            <p class="mt-1 text-lg font-bold" :class="forecast.min_balance < 0 ? 'text-danger' : 'text-ink'">{{ money(forecast.min_balance) }}</p>
+          </article>
+          <article class="rounded-2xl bg-sand p-3">
+            <p class="text-xs uppercase tracking-[.12em] text-ink/60">Остаток на конце горизонта</p>
+            <p class="mt-1 text-lg font-bold">{{ money(forecast.ending_balance) }}</p>
+          </article>
+          <article class="rounded-2xl bg-sand p-3">
+            <p class="text-xs uppercase tracking-[.12em] text-ink/60">День самого низкого остатка</p>
+            <p class="mt-1 text-sm font-semibold">{{ forecast.min_balance_date }}</p>
+          </article>
+        </div>
+
+        <div v-if="forecast && sparklinePath" class="mt-4 rounded-2xl border border-line/80 bg-white p-3">
+          <p class="mb-2 text-xs font-semibold uppercase tracking-[.12em] text-ink/60">Траектория остатка (первые 20 точек)</p>
+          <svg viewBox="0 0 320 90" class="h-24 w-full">
+            <path :d="sparklinePath" fill="none" stroke="#0f5f7a" stroke-width="2.2" stroke-linecap="round" />
+            <line x1="0" y1="45" x2="320" y2="45" stroke="#c7d8d2" stroke-dasharray="4 4" />
+          </svg>
+        </div>
+      </section>
+
+      <section id="step-4" class="rise rounded-3xl border border-line bg-white/92 p-5 shadow-soft">
+        <div class="mb-4 flex items-center justify-between">
+          <h2 class="font-display text-xl font-semibold">Шаг 4. Внешние сигналы и документы</h2>
+          <span class="rounded-full bg-danger/10 px-3 py-1 text-xs font-semibold text-danger">Knowledge</span>
+        </div>
+
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <label>
+            <span class="field-label">Источник сигнала <span class="help-icon" title="Название внешней системы, например interfax.">?</span></span>
+            <input v-model.trim="state.signalSource" class="w-full rounded-xl border border-line px-3 py-2" />
+          </label>
+          <label>
+            <span class="field-label">Заголовок сигнала <span class="help-icon" title="Короткое содержание внешней новости/события.">?</span></span>
+            <input v-model.trim="state.signalTitle" class="w-full rounded-xl border border-line px-3 py-2" />
+          </label>
+        </div>
+
+        <label class="mt-2 block">
+          <span class="field-label">Текст сигнала <span class="help-icon" title="Подробный текст события, который будет проиндексирован и обработан.">?</span></span>
+          <textarea v-model.trim="state.signalBody" rows="3" class="w-full rounded-xl border border-line px-3 py-2"></textarea>
+        </label>
+
+        <button @click="sendSignal" :disabled="busy.signal" class="mt-3 w-full rounded-xl bg-sea px-3 py-2 text-sm font-semibold text-white hover:bg-sea/90 disabled:opacity-60">{{ busy.signal ? 'Отправка...' : 'Отправить внешний сигнал' }}</button>
+
+        <div class="mt-4 rounded-2xl border border-line/80 bg-white p-3">
+          <label class="field-label">Документ для индексации <span class="help-icon" title="PDF/TXT/HTML документ с правилами, тарифами, новостями.">?</span></label>
+          <input type="file" @change="onDocFile" class="w-full rounded-xl border border-line bg-white px-3 py-2 text-sm" />
+          <button @click="uploadDoc" :disabled="busy.doc" class="mt-3 w-full rounded-xl bg-mint px-3 py-2 text-sm font-semibold text-white hover:bg-mint/90 disabled:opacity-60">{{ busy.doc ? 'Индексируем...' : 'Индексировать документ' }}</button>
+        </div>
+
+        <div class="mt-4 flex gap-2">
+          <div class="w-full">
+            <label class="field-label">Поисковый запрос <span class="help-icon" title="Ключевые слова для поиска по Knowledge Layer.">?</span></label>
+            <input v-model.trim="state.searchQuery" placeholder="комиссия, payouts, штраф..." class="w-full rounded-xl border border-line px-3 py-2" />
+          </div>
+          <button @click="searchDocs" :disabled="busy.search" class="mt-6 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-sea ring-1 ring-line hover:bg-sea/5 disabled:opacity-60">Поиск</button>
+        </div>
+
+        <div class="mt-4 rounded-2xl border border-line/80 bg-white p-4">
+          <p class="mb-2 text-xs font-semibold uppercase tracking-[.12em] text-ink/60">Результаты поиска</p>
+          <div class="max-h-56 space-y-2 overflow-auto pr-1">
+            <article v-for="hit in searchHits" :key="hit.chunk_id" class="rounded-xl bg-sand p-3">
+              <p class="text-sm font-semibold">{{ hit.source_name }}</p>
+              <p class="mt-1 text-xs text-ink/70" v-html="hit.snippet"></p>
+            </article>
+            <p v-if="!searchHits.length" class="text-sm text-ink/55">Поиск ещё не запускался.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="step-5" class="rise rounded-3xl border border-line bg-white/92 p-5 shadow-soft">
+        <div class="mb-4 flex items-center justify-between">
+          <h2 class="font-display text-xl font-semibold">Шаг 5. Сценарный расчет</h2>
+          <span class="rounded-full bg-sea/10 px-3 py-1 text-xs font-semibold text-sea">What-if</span>
+        </div>
+
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <label>
+            <span class="field-label">Изменение рекламы (доля) <span class="help-icon" title="-0.15 означает снижение рекламного бюджета на 15%.">?</span></span>
+            <input v-model.number="state.adsDelta" type="number" step="0.01" class="w-full rounded-xl border border-line px-3 py-2" />
+          </label>
+          <label>
+            <span class="field-label">Изменение цены (доля) <span class="help-icon" title="0.03 означает повышение цены на 3%.">?</span></span>
+            <input v-model.number="state.priceDelta" type="number" step="0.01" class="w-full rounded-xl border border-line px-3 py-2" />
+          </label>
+          <label>
+            <span class="field-label">Сдвиг закупки, дни <span class="help-icon" title="На сколько дней перенести закупку.">?</span></span>
+            <input v-model.number="state.procShift" type="number" class="w-full rounded-xl border border-line px-3 py-2" />
+          </label>
+          <label>
+            <span class="field-label">Изменение объема закупки (доля) <span class="help-icon" title="-0.1 означает сокращение закупки на 10%.">?</span></span>
+            <input v-model.number="state.procDelta" type="number" step="0.01" class="w-full rounded-xl border border-line px-3 py-2" />
+          </label>
+        </div>
+
+        <button @click="runScenario" :disabled="busy.scenario" class="mt-4 w-full rounded-xl bg-sea px-4 py-2.5 text-sm font-semibold text-white hover:bg-sea/90 disabled:opacity-60">{{ busy.scenario ? 'Считаем...' : 'Оценить сценарий' }}</button>
+        <p v-if="errors.scenario" class="mt-3 rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger">{{ errors.scenario }}</p>
+
+        <div v-if="scenario" class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <article class="rounded-2xl bg-sand p-3">
+            <p class="text-xs uppercase tracking-[.12em] text-ink/60">Снижение риска</p>
+            <p class="mt-1 text-lg font-bold text-mint">{{ pct(scenario.risk_reduction * 100) }}</p>
+          </article>
+          <article class="rounded-2xl bg-sand p-3">
+            <p class="text-xs uppercase tracking-[.12em] text-ink/60">Изменение прибыли</p>
+            <p class="mt-1 text-lg font-bold" :class="scenario.profit_delta_pct < 0 ? 'text-danger' : 'text-mint'">{{ pct(scenario.profit_delta_pct) }}</p>
+          </article>
+          <article class="rounded-2xl bg-sand p-3 sm:col-span-1">
+            <p class="text-xs uppercase tracking-[.12em] text-ink/60">Рекомендация</p>
+            <p class="mt-1 text-sm font-semibold">{{ scenario.recommendation }}</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="step-6" class="rise rounded-3xl border border-line bg-white/92 p-5 shadow-soft">
+        <div class="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <h2 class="font-display text-xl font-semibold">Шаг 6. Результаты и объяснения</h2>
+          <div class="flex gap-2">
+            <button @click="loadImpacts" :disabled="busy.impacts" class="rounded-xl bg-white px-3 py-2 text-sm font-semibold text-sea ring-1 ring-line hover:bg-sea/5 disabled:opacity-60">{{ busy.impacts ? '...' : 'Обновить impacts' }}</button>
+            <button @click="loadExplain" :disabled="busy.explain" class="rounded-xl bg-white px-3 py-2 text-sm font-semibold text-sea ring-1 ring-line hover:bg-sea/5 disabled:opacity-60">{{ busy.explain ? '...' : 'Обновить explain' }}</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div class="rounded-2xl border border-line/80 bg-white p-4">
+            <p class="mb-2 text-xs font-semibold uppercase tracking-[.12em] text-ink/60">Что изменилось и как это влияет</p>
+            <div class="max-h-56 space-y-2 overflow-auto pr-1">
+              <article v-for="item in impacts" :key="item.id" class="rounded-xl bg-sand p-3">
+                <p class="font-semibold">{{ impactTypeLabel(item.impact_type) }}</p>
+                <p class="text-xs text-ink/75">{{ impactTypeDescription(item.impact_type) }}</p>
+                <p class="mt-1 text-xs text-ink/70">{{ impactValueText(item) }} | уверенность {{ Math.round(Number(item.relevance_score) * 100) }}%</p>
+              </article>
+              <p v-if="!impacts.length" class="text-sm text-ink/55">Нет данных о внешнем влиянии.</p>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-line/80 bg-white p-4">
+            <p class="mb-2 text-xs font-semibold uppercase tracking-[.12em] text-ink/60">Explain Drivers</p>
+            <div class="max-h-56 space-y-2 overflow-auto pr-1">
+              <article v-for="driver in explainDrivers" :key="driver.driver + driver.impact_estimate" class="rounded-xl bg-sand p-3">
+                <p class="font-semibold">{{ driver.driver }}</p>
+                <p class="text-xs text-ink/70">{{ driver.impact_estimate }}</p>
+              </article>
+              <p v-if="!explainDrivers.length" class="text-sm text-ink/55">Нет драйверов.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="mt-4 rounded-2xl border border-line/80 bg-[#172229] p-4 text-xs text-[#daf4ef]">
+          <p class="mb-2 text-xs font-semibold uppercase tracking-[.12em] text-[#9ed8cb]">Operation Log</p>
+          <pre class="max-h-44 overflow-auto">{{ state.log }}</pre>
+        </div>
+      </section>
+    </main>
+  </div>
 
   <script>
-    const API = "/api/v1";
+    document.addEventListener('DOMContentLoaded', () => {
+      const { createApp, reactive, computed } = Vue;
 
-    const pretty = (obj) => JSON.stringify(obj, null, 2);
+      createApp({
+        setup() {
+          const API = '/api/v1';
+          const state = reactive({
+            profileId: 'default',
+            horizonDays: 60,
+            startBalance: 150000,
+            adsDelta: -0.15,
+            priceDelta: 0.03,
+            procShift: 7,
+            procDelta: -0.1,
+            sku: '',
+            category: '',
+            originCountry: '',
+            supplierName: '',
+            routeName: '',
+            productKeywords: '',
+            signalSource: 'interfax',
+            signalTitle: 'На границе с Турцией задержаны все фуры с помидорами',
+            signalBody: 'Ожидаемая задержка поставки 10 дней. Риск дефицита товара в ближайшие 2 недели.',
+            searchQuery: 'комиссия',
+            log: 'Готово к работе.\n'
+          });
 
-    async function request(url, options = {}) {
-      const response = await fetch(url, options);
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.detail || response.statusText);
-      }
-      return data;
-    }
+          const busy = reactive({ forecast:false, scenario:false, context:false, addContext:false, finance:false, signal:false, doc:false, search:false, impacts:false, explain:false });
+          const errors = reactive({ forecast:'', scenario:'', finance:'', context:'' });
+          const contextFieldErrors = reactive({});
+          const data = reactive({ forecast:null, scenario:null, contextItems:[], impacts:[], explain:[], searchHits:[] });
 
-    document.getElementById("financeForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const out = document.getElementById("financeResult");
-      const file = document.getElementById("financeFile").files[0];
-      if (!file) return;
-      const form = new FormData();
-      form.append("file", file);
-      out.textContent = "Импортируем...";
-      try {
-        const data = await request(`${API}/finance/import`, { method: "POST", body: form });
-        out.textContent = pretty(data);
-      } catch (err) {
-        out.textContent = String(err);
-      }
-    });
+          let financeFile = null;
+          let docFile = null;
 
-    document.getElementById("forecastForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const out = document.getElementById("forecastResult");
-      out.textContent = "Считаем прогноз...";
-      const payload = {
-        seller_code: document.getElementById("sellerCode").value.trim() || "default",
-        horizon_days: Number(document.getElementById("horizon").value),
-        start_balance: Number(document.getElementById("startBalance").value),
-      };
-      try {
-        const data = await request(`${API}/cashflow/forecast`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        out.textContent = pretty({
-          min_balance: data.min_balance,
-          min_balance_date: data.min_balance_date,
-          ending_balance: data.ending_balance,
-          alerts: data.alerts,
-          sample_points: data.points.slice(0, 5),
-        });
-      } catch (err) {
-        out.textContent = String(err);
-      }
-    });
+          const moneyFmt = new Intl.NumberFormat('ru-RU', { style:'currency', currency:'RUB', maximumFractionDigits:0 });
+          const money = (v) => typeof v === 'number' ? moneyFmt.format(v) : '-';
+          const pct = (v) => typeof v === 'number' ? `${v.toFixed(2)}%` : '-';
+          const num = (v, digits = 1) => typeof v === 'number' ? v.toFixed(digits) : '0';
+          const contextFieldLabel = (field) => ({
+            sku: 'SKU',
+            category: 'Категория',
+            origin_country: 'Страна происхождения',
+            supplier_name: 'Поставщик',
+            route_name: 'Маршрут',
+            product_keywords: 'Ключевые слова',
+            seller_code: 'Код продавца',
+            seller_name: 'Название продавца'
+          }[field] || field);
 
-    document.getElementById("scenarioForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const out = document.getElementById("scenarioResult");
-      out.textContent = "Оцениваем сценарий...";
-      const payload = {
-        seller_code: document.getElementById("sellerCode").value.trim() || "default",
-        horizon_days: Number(document.getElementById("horizon").value),
-        start_balance: Number(document.getElementById("startBalance").value),
-        ads_delta_pct: Number(document.getElementById("adsDelta").value),
-        price_delta_pct: Number(document.getElementById("priceDelta").value),
-        procurement_shift_days: Number(document.getElementById("procShift").value),
-        procurement_delta_pct: Number(document.getElementById("procDelta").value),
-      };
-      try {
-        const data = await request(`${API}/cashflow/scenario`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        out.textContent = pretty(data);
-      } catch (err) {
-        out.textContent = String(err);
-      }
-    });
+          const translateValidationMessage = (message) => {
+            const source = String(message || '').trim();
+            if (!source) return 'Некорректное значение';
+            if (source === 'Field required') return 'Поле обязательно для заполнения';
+            if (source.startsWith('String should have at least')) {
+              const minMatch = source.match(/at least (\d+)/i);
+              return `Минимальная длина: ${minMatch?.[1] || '?'} символа`;
+            }
+            if (source.startsWith('String should have at most')) {
+              const maxMatch = source.match(/at most (\d+)/i);
+              return `Максимальная длина: ${maxMatch?.[1] || '?'} символов`;
+            }
+            return source;
+          };
 
-    document.getElementById("docForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const out = document.getElementById("docResult");
-      const file = document.getElementById("docFile").files[0];
-      if (!file) return;
-      const form = new FormData();
-      form.append("file", file);
-      out.textContent = "Индексируем документ...";
-      try {
-        const data = await request(`${API}/knowledge/documents/upload`, { method: "POST", body: form });
-        out.textContent = pretty(data);
-      } catch (err) {
-        out.textContent = String(err);
-      }
-    });
+          const parseValidationFieldErrors = (detail) => {
+            const fieldErrors = {};
+            if (!Array.isArray(detail)) return fieldErrors;
+            for (const item of detail) {
+              if (!item || typeof item !== 'object') continue;
+              const loc = Array.isArray(item.loc) ? item.loc : [];
+              const field = loc[0] === 'body' ? String(loc[1] || '') : '';
+              if (!field) continue;
+              const message = translateValidationMessage(item.msg);
+              fieldErrors[field] = fieldErrors[field]
+                ? `${fieldErrors[field]}; ${message}`
+                : message;
+            }
+            return fieldErrors;
+          };
 
-    document.getElementById("searchForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const out = document.getElementById("searchResult");
-      const query = document.getElementById("searchQuery").value;
-      out.textContent = "Ищем...";
-      try {
-        const data = await request(`${API}/knowledge/search?q=${encodeURIComponent(query)}&top_k=5`);
-        out.textContent = pretty(data);
-      } catch (err) {
-        out.textContent = String(err);
-      }
-    });
+          const formatApiError = (detail, status, fieldErrors = null) => {
+            if (typeof detail === 'string' && detail.trim()) {
+              return detail.trim();
+            }
+            if (fieldErrors && Object.keys(fieldErrors).length) {
+              return Object.entries(fieldErrors)
+                .map(([field, message]) => `${contextFieldLabel(field)}: ${message}`)
+                .join(' | ');
+            }
+            if (detail && typeof detail === 'object') {
+              if (typeof detail.message === 'string') return detail.message;
+              if (typeof detail.error === 'string') return detail.error;
+            }
+            return `HTTP ${status}`;
+          };
 
-    document.getElementById("explainBtn").addEventListener("click", async () => {
-      const out = document.getElementById("explainResult");
-      out.textContent = "Формируем объяснение...";
-      try {
-        const sellerCode = document.getElementById("sellerCode").value.trim() || "default";
-        const data = await request(`${API}/cashflow/explain?seller_code=${encodeURIComponent(sellerCode)}`);
-        out.textContent = pretty(data);
-      } catch (err) {
-        out.textContent = String(err);
-      }
-    });
+          const clearContextFieldErrors = () => {
+            Object.keys(contextFieldErrors).forEach((key) => delete contextFieldErrors[key]);
+          };
 
-    document.getElementById("loadContextBtn").addEventListener("click", async () => {
-      const out = document.getElementById("contextResult");
-      out.textContent = "Загружаем seller context...";
-      try {
-        const sellerCode = document.getElementById("sellerCode").value.trim() || "default";
-        const data = await request(`${API}/context/items?seller_code=${encodeURIComponent(sellerCode)}`);
-        out.textContent = pretty(data);
-      } catch (err) {
-        out.textContent = String(err);
-      }
-    });
+          const contextFieldError = (field) => contextFieldErrors[field] || '';
+          const inputClass = (hasError) => [
+            'w-full rounded-xl border px-3 py-2 outline-none transition',
+            hasError
+              ? 'border-danger bg-danger/5 focus:border-danger focus:ring-2 focus:ring-danger/15'
+              : 'border-line focus:border-mint focus:ring-2 focus:ring-mint/20'
+          ];
 
-    document.getElementById("signalForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const out = document.getElementById("signalResult");
-      out.textContent = "Отправляем внешний сигнал...";
-      const payload = {
-        source_system: document.getElementById("signalSource").value.trim() || "external_feed",
-        title: document.getElementById("signalTitle").value.trim(),
-        body: document.getElementById("signalBody").value.trim(),
-      };
-      try {
-        const data = await request(`${API}/knowledge/signals/ingest`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        out.textContent = pretty(data);
-      } catch (err) {
-        out.textContent = String(err);
-      }
-    });
+          const impactTypeLabel = (type) => ({
+            commission_rate_delta_pct: 'Комиссия маркетплейса',
+            logistics_cost_delta_pct: 'Стоимость логистики',
+            payout_delay_delta_days: 'Срок выплат',
+            sales_drop_pct: 'Ожидаемый объем продаж',
+            procurement_delay_days: 'Срок поставки/закупки'
+          }[type] || 'Внешний фактор');
 
-    document.getElementById("loadImpactsBtn").addEventListener("click", async () => {
-      const out = document.getElementById("impactsResult");
-      out.textContent = "Загружаем impacts...";
-      try {
-        const sellerCode = document.getElementById("sellerCode").value.trim() || "default";
-        const data = await request(`${API}/knowledge/impacts?seller_code=${encodeURIComponent(sellerCode)}&limit=20`);
-        out.textContent = pretty(data);
-      } catch (err) {
-        out.textContent = String(err);
-      }
+          const impactTypeDescription = (type) => ({
+            commission_rate_delta_pct: 'Маркетплейс изменил процент удержания комиссии.',
+            logistics_cost_delta_pct: 'Изменились затраты на логистику.',
+            payout_delay_delta_days: 'Изменился лаг между продажей и фактической выплатой.',
+            sales_drop_pct: 'Система ожидает изменение темпа продаж из-за внешнего события.',
+            procurement_delay_days: 'Система учитывает задержку поступления товара.'
+          }[type] || 'Внешний сигнал, влияющий на денежный поток.');
+
+          const impactValueText = (item) => {
+            const value = Number(item?.impact_value ?? 0);
+            const sign = value > 0 ? '+' : '';
+            if (item?.impact_type === 'commission_rate_delta_pct') return `Комиссия: ${sign}${num(value)} п.п.`;
+            if (item?.impact_type === 'logistics_cost_delta_pct') return `Логистика: ${sign}${num(value)}%`;
+            if (item?.impact_type === 'payout_delay_delta_days') return `Выплаты: ${sign}${num(value, 0)} дн.`;
+            if (item?.impact_type === 'sales_drop_pct') return `Продажи: ${sign}${num(value)}%`;
+            if (item?.impact_type === 'procurement_delay_days') return `Поставка: ${sign}${num(value, 0)} дн.`;
+            return `Влияние: ${sign}${num(value)}`;
+          };
+
+          const forecast = computed(() => data.forecast);
+          const scenario = computed(() => data.scenario);
+          const contextItems = computed(() => data.contextItems);
+          const impacts = computed(() => data.impacts);
+          const explainDrivers = computed(() => data.explain);
+          const searchHits = computed(() => data.searchHits);
+
+          const sparklinePath = computed(() => {
+            const pts = data.forecast?.points?.slice(0, 20) || [];
+            if (pts.length < 2) return '';
+            const values = pts.map((p) => Number(p.balance));
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            const range = Math.max(1, max - min);
+            return pts.map((p, i) => {
+              const x = (i / (pts.length - 1)) * 320;
+              const y = 82 - ((Number(p.balance) - min) / range) * 74;
+              return `${i ? 'L' : 'M'} ${x.toFixed(2)} ${y.toFixed(2)}`;
+            }).join(' ');
+          });
+
+          const log = (title, payload) => {
+            const row = `[${new Date().toLocaleTimeString('ru-RU')}] ${title}\n${JSON.stringify(payload, null, 2)}\n\n`;
+            state.log = `${row}${state.log}`.slice(0, 14000);
+          };
+
+          const req = async (url, options = {}) => {
+            const res = await fetch(url, options);
+            const json = await res.json().catch(() => ({}));
+            if (!res.ok) {
+              const fieldErrors = parseValidationFieldErrors(json?.detail);
+              const err = new Error(formatApiError(json?.detail, res.status, fieldErrors));
+              err.validation_fields = fieldErrors;
+              throw err;
+            }
+            return json;
+          };
+
+          const runForecast = async () => {
+            errors.forecast = '';
+            busy.forecast = true;
+            try {
+              data.forecast = await req(`${API}/cashflow/forecast`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ seller_code: state.profileId || 'default', horizon_days: state.horizonDays, start_balance: state.startBalance })
+              });
+              log('Forecast calculated', { min_balance: data.forecast.min_balance, ending_balance: data.forecast.ending_balance });
+            } catch (e) {
+              errors.forecast = String(e.message || e);
+            } finally {
+              busy.forecast = false;
+            }
+          };
+
+          const runScenario = async () => {
+            errors.scenario = '';
+            busy.scenario = true;
+            try {
+              data.scenario = await req(`${API}/cashflow/scenario`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  seller_code: state.profileId || 'default',
+                  horizon_days: state.horizonDays,
+                  start_balance: state.startBalance,
+                  ads_delta_pct: state.adsDelta,
+                  price_delta_pct: state.priceDelta,
+                  procurement_shift_days: state.procShift,
+                  procurement_delta_pct: state.procDelta
+                })
+              });
+              log('Scenario evaluated', data.scenario);
+            } catch (e) {
+              errors.scenario = String(e.message || e);
+            } finally {
+              busy.scenario = false;
+            }
+          };
+
+          const loadContext = async () => {
+            busy.context = true;
+            try {
+              data.contextItems = await req(`${API}/context/items?seller_code=${encodeURIComponent(state.profileId || 'default')}`);
+              log('Profile loaded', { items: data.contextItems.length, profile_id: state.profileId || 'default' });
+            } catch (e) {
+              log('Profile load error', { message: String(e.message || e) });
+            } finally {
+              busy.context = false;
+            }
+          };
+
+          const addContext = async () => {
+            errors.context = '';
+            clearContextFieldErrors();
+            busy.addContext = true;
+            try {
+              const payload = {
+                seller_code: state.profileId || 'default',
+                seller_name: 'Default Seller',
+                sku: state.sku,
+                category: state.category || null,
+                origin_country: state.originCountry || null,
+                supplier_name: state.supplierName || null,
+                route_name: state.routeName || null,
+                product_keywords: state.productKeywords || null,
+                is_active: true
+              };
+              const created = await req(`${API}/context/items`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+              log('Context item added', created);
+              state.sku = '';
+              state.category = '';
+              state.originCountry = '';
+              state.supplierName = '';
+              state.routeName = '';
+              state.productKeywords = '';
+              await loadContext();
+            } catch (e) {
+              const validationFields = (e && typeof e === 'object' && e.validation_fields && typeof e.validation_fields === 'object')
+                ? e.validation_fields
+                : {};
+              const hasFieldErrors = Object.keys(validationFields).length > 0;
+              if (hasFieldErrors) {
+                Object.entries(validationFields).forEach(([field, message]) => {
+                  contextFieldErrors[field] = String(message || 'Некорректное значение');
+                });
+                errors.context = 'Проверьте поля с красной подсветкой и попробуйте снова.';
+              } else {
+                errors.context = String(e.message || e);
+              }
+              log('Context add error', { message: String(e.message || e) });
+            } finally {
+              busy.addContext = false;
+            }
+          };
+
+          const onFinanceFile = (e) => { financeFile = e.target.files?.[0] || null; };
+          const importFinance = async () => {
+            errors.finance = '';
+            if (!financeFile) {
+              errors.finance = 'Выбери CSV/XLSX файл с финансовой лентой';
+              return;
+            }
+            busy.finance = true;
+            try {
+              const fd = new FormData();
+              fd.append('file', financeFile);
+              const imported = await req(`${API}/finance/import`, { method: 'POST', body: fd });
+              log('Finance imported', imported);
+            } catch (e) {
+              errors.finance = String(e.message || e);
+            } finally {
+              busy.finance = false;
+            }
+          };
+
+          const sendSignal = async () => {
+            busy.signal = true;
+            try {
+              const payload = { source_system: state.signalSource, title: state.signalTitle, body: state.signalBody };
+              const result = await req(`${API}/knowledge/signals/ingest`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+              log('Signal ingested', result);
+              await loadImpacts();
+              await loadExplain();
+            } catch (e) {
+              log('Signal error', { message: String(e.message || e) });
+            } finally {
+              busy.signal = false;
+            }
+          };
+
+          const onDocFile = (e) => { docFile = e.target.files?.[0] || null; };
+          const uploadDoc = async () => {
+            if (!docFile) {
+              log('Document upload', { warning: 'Файл не выбран' });
+              return;
+            }
+            busy.doc = true;
+            try {
+              const fd = new FormData();
+              fd.append('file', docFile);
+              const uploaded = await req(`${API}/knowledge/documents/upload`, { method: 'POST', body: fd });
+              log('Document uploaded', uploaded);
+            } catch (e) {
+              log('Document error', { message: String(e.message || e) });
+            } finally {
+              busy.doc = false;
+            }
+          };
+
+          const searchDocs = async () => {
+            busy.search = true;
+            try {
+              const r = await req(`${API}/knowledge/search?q=${encodeURIComponent(state.searchQuery || 'комиссия')}&top_k=8`);
+              data.searchHits = r.hits || [];
+              log('Search done', { hits: data.searchHits.length });
+            } catch (e) {
+              log('Search error', { message: String(e.message || e) });
+            } finally {
+              busy.search = false;
+            }
+          };
+
+          const loadImpacts = async () => {
+            busy.impacts = true;
+            try {
+              data.impacts = await req(`${API}/knowledge/impacts?seller_code=${encodeURIComponent(state.profileId || 'default')}&limit=20&relevant_only=true`);
+              log('Impacts loaded', { count: data.impacts.length });
+            } catch (e) {
+              log('Impacts error', { message: String(e.message || e) });
+            } finally {
+              busy.impacts = false;
+            }
+          };
+
+          const loadExplain = async () => {
+            busy.explain = true;
+            try {
+              const r = await req(`${API}/cashflow/explain?seller_code=${encodeURIComponent(state.profileId || 'default')}`);
+              data.explain = r.drivers || [];
+              log('Explain loaded', { drivers: data.explain.length });
+            } catch (e) {
+              log('Explain error', { message: String(e.message || e) });
+            } finally {
+              busy.explain = false;
+            }
+          };
+
+          loadContext();
+          loadImpacts();
+          loadExplain();
+
+          return {
+            state, busy, errors,
+            forecast, scenario, contextItems, impacts, explainDrivers, searchHits,
+            sparklinePath,
+            money, pct,
+            contextFieldError, inputClass,
+            impactTypeLabel, impactTypeDescription, impactValueText,
+            runForecast, runScenario,
+            loadContext, addContext,
+            onFinanceFile, importFinance,
+            sendSignal, onDocFile, uploadDoc, searchDocs,
+            loadImpacts, loadExplain
+          };
+        }
+      }).mount('#app');
     });
   </script>
 </body>
