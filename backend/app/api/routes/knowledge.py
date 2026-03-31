@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, HttpUrl
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from sqlalchemy.orm import Session
 
+from app.core.metrics import documents_uploaded_total, signals_ingested_total
 from app.db.session import get_db
 from app.schemas.context import SignalImpactOut
 from app.schemas.knowledge import DocumentUploadResponse, ExternalEventOut, SearchResponse
@@ -37,12 +38,14 @@ async def upload_document(
 ) -> DocumentUploadResponse:
     content = await file.read()
     try:
-        return ingest_document(
+        result = ingest_document(
             db=db,
             filename=file.filename or "document.txt",
             content=content,
             source_url=source_url,
         )
+        documents_uploaded_total.inc()
+        return result
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
@@ -55,7 +58,9 @@ def upload_document_from_url(
     db: Session = Depends(get_db),
 ) -> DocumentUploadResponse:
     try:
-        return ingest_document_from_url(db=db, url=str(request.url))
+        result = ingest_document_from_url(db=db, url=str(request.url))
+        documents_uploaded_total.inc()
+        return result
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to fetch/index URL: {exc}") from exc
 
@@ -79,12 +84,14 @@ def ingest_external_signal(
     content = "\n".join(lines).encode("utf-8")
 
     try:
-        return ingest_document(
+        result = ingest_document(
             db=db,
             filename=filename,
             content=content,
             source_url=str(request.source_url) if request.source_url else None,
         )
+        signals_ingested_total.inc()
+        return result
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to ingest external signal: {exc}") from exc
 

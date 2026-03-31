@@ -2,6 +2,7 @@
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
+from app.core.metrics import finance_imports_total
 from app.models import FinanceEvent
 from app.schemas.finance import FinanceEventOut, FinanceImportResult
 from app.services.finance_import import import_finance_file
@@ -16,7 +17,9 @@ async def import_finance(
 ) -> FinanceImportResult:
     content = await file.read()
     try:
-        return import_finance_file(file_content=content, filename=file.filename or "upload.csv", db=db)
+        result = import_finance_file(file_content=content, filename=file.filename or "upload.csv", db=db)
+        finance_imports_total.inc()
+        return result
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 

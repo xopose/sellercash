@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app.core.metrics import context_items_created_total
 from app.db.session import get_db
 from app.schemas.context import SellerContextItemCreate, SellerContextItemOut
 from app.services.context import add_context_item, ensure_default_seller_context, list_context_items
@@ -13,7 +14,9 @@ def create_context_item(
     request: SellerContextItemCreate,
     db: Session = Depends(get_db),
 ) -> SellerContextItemOut:
-    return add_context_item(db, request)
+    item = add_context_item(db, request)
+    context_items_created_total.inc()
+    return item
 
 
 @router.get("/items", response_model=list[SellerContextItemOut])

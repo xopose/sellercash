@@ -89,6 +89,20 @@
           <h1 class="font-display text-3xl font-semibold leading-tight md:text-4xl">SellerCash</h1>
         </div>
 
+        <div class="mt-5 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-line bg-white px-4 py-3">
+          <p class="text-sm text-ink/75">
+            Доступ:
+            <span class="font-semibold" :class="state.authEnabled ? (state.authToken ? 'text-mint' : 'text-danger') : 'text-ink/70'">
+              {{ state.authEnabled ? (state.authToken ? `выполнен (${state.authUser || 'user'})` : 'требуется логин') : 'auth отключён' }}
+            </span>
+          </p>
+          <div class="flex gap-2">
+            <button v-if="state.authEnabled && !state.authToken" @click="goToLogin" class="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-sea ring-1 ring-line hover:bg-sea/5">Страница входа</button>
+            <button v-if="state.authEnabled && state.authToken" @click="logout" class="rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-sea ring-1 ring-line hover:bg-sea/5">Выйти</button>
+          </div>
+        </div>
+        <p v-if="errors.auth" class="mt-3 rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger">{{ errors.auth }}</p>
+
         <div class="mt-5 rounded-2xl border border-line bg-sand/70 p-4">
           <p class="mb-3 text-sm font-semibold text-ink">Порядок действий</p>
           <ol class="grid grid-cols-1 gap-2 text-sm text-ink/80 md:grid-cols-2 xl:grid-cols-3">
@@ -144,8 +158,8 @@
         </div>
 
         <div class="mt-3 flex flex-col gap-2 sm:flex-row">
-          <button @click="addContext" :disabled="busy.addContext" class="w-full rounded-xl bg-mint px-3 py-2 text-sm font-semibold text-white hover:bg-mint/90 disabled:opacity-60">{{ busy.addContext ? '...' : 'Сохранить позицию в профиле' }}</button>
-          <button @click="loadContext" :disabled="busy.context" class="w-full rounded-xl bg-white px-3 py-2 text-sm font-semibold text-sea ring-1 ring-line hover:bg-sea/5 disabled:opacity-60">Обновить список профиля</button>
+          <button @click="addContext" :disabled="busy.addContext || authBlocked" class="w-full rounded-xl bg-mint px-3 py-2 text-sm font-semibold text-white hover:bg-mint/90 disabled:opacity-60">{{ busy.addContext ? '...' : 'Сохранить позицию в профиле' }}</button>
+          <button @click="loadContext" :disabled="busy.context || authBlocked" class="w-full rounded-xl bg-white px-3 py-2 text-sm font-semibold text-sea ring-1 ring-line hover:bg-sea/5 disabled:opacity-60">Обновить список профиля</button>
         </div>
         <p v-if="errors.context" class="mt-3 rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger">{{ errors.context }}</p>
 
@@ -165,7 +179,7 @@
 
         <label class="field-label">Файл финансовой выгрузки <span class="help-icon" title="CSV/XLSX файл с продажами, расходами, выплатами и др. денежными событиями.">?</span></label>
         <input type="file" @change="onFinanceFile" class="w-full rounded-xl border border-line bg-white px-3 py-2 text-sm" />
-        <button @click="importFinance" :disabled="busy.finance" class="mt-3 w-full rounded-xl bg-sea px-3 py-2 text-sm font-semibold text-white hover:bg-sea/90 disabled:opacity-60">{{ busy.finance ? 'Импорт...' : 'Импортировать данные' }}</button>
+        <button @click="importFinance" :disabled="busy.finance || authBlocked" class="mt-3 w-full rounded-xl bg-sea px-3 py-2 text-sm font-semibold text-white hover:bg-sea/90 disabled:opacity-60">{{ busy.finance ? 'Импорт...' : 'Импортировать данные' }}</button>
         <p v-if="errors.finance" class="mt-3 rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger">{{ errors.finance }}</p>
       </section>
 
@@ -184,7 +198,7 @@
             <input v-model.number="state.startBalance" type="number" class="w-full rounded-xl border border-line px-3 py-2 outline-none focus:border-mint focus:ring-2 focus:ring-mint/20" />
           </label>
         </div>
-        <button @click="runForecast" :disabled="busy.forecast" class="mt-4 w-full rounded-xl bg-mint px-4 py-2.5 text-sm font-semibold text-white hover:bg-mint/90 disabled:opacity-60">{{ busy.forecast ? 'Считаем...' : 'Построить baseline-прогноз' }}</button>
+        <button @click="runForecast" :disabled="busy.forecast || authBlocked" class="mt-4 w-full rounded-xl bg-mint px-4 py-2.5 text-sm font-semibold text-white hover:bg-mint/90 disabled:opacity-60">{{ busy.forecast ? 'Считаем...' : 'Построить baseline-прогноз' }}</button>
         <p v-if="errors.forecast" class="mt-3 rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger">{{ errors.forecast }}</p>
 
         <div v-if="forecast" class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -233,12 +247,12 @@
           <textarea v-model.trim="state.signalBody" rows="3" class="w-full rounded-xl border border-line px-3 py-2"></textarea>
         </label>
 
-        <button @click="sendSignal" :disabled="busy.signal" class="mt-3 w-full rounded-xl bg-sea px-3 py-2 text-sm font-semibold text-white hover:bg-sea/90 disabled:opacity-60">{{ busy.signal ? 'Отправка...' : 'Отправить внешний сигнал' }}</button>
+        <button @click="sendSignal" :disabled="busy.signal || authBlocked" class="mt-3 w-full rounded-xl bg-sea px-3 py-2 text-sm font-semibold text-white hover:bg-sea/90 disabled:opacity-60">{{ busy.signal ? 'Отправка...' : 'Отправить внешний сигнал' }}</button>
 
         <div class="mt-4 rounded-2xl border border-line/80 bg-white p-3">
           <label class="field-label">Документ для индексации <span class="help-icon" title="PDF/TXT/HTML документ с правилами, тарифами, новостями.">?</span></label>
           <input type="file" @change="onDocFile" class="w-full rounded-xl border border-line bg-white px-3 py-2 text-sm" />
-          <button @click="uploadDoc" :disabled="busy.doc" class="mt-3 w-full rounded-xl bg-mint px-3 py-2 text-sm font-semibold text-white hover:bg-mint/90 disabled:opacity-60">{{ busy.doc ? 'Индексируем...' : 'Индексировать документ' }}</button>
+          <button @click="uploadDoc" :disabled="busy.doc || authBlocked" class="mt-3 w-full rounded-xl bg-mint px-3 py-2 text-sm font-semibold text-white hover:bg-mint/90 disabled:opacity-60">{{ busy.doc ? 'Индексируем...' : 'Индексировать документ' }}</button>
         </div>
 
         <div class="mt-4 flex gap-2">
@@ -246,7 +260,7 @@
             <label class="field-label">Поисковый запрос <span class="help-icon" title="Ключевые слова для поиска по Knowledge Layer.">?</span></label>
             <input v-model.trim="state.searchQuery" placeholder="комиссия, payouts, штраф..." class="w-full rounded-xl border border-line px-3 py-2" />
           </div>
-          <button @click="searchDocs" :disabled="busy.search" class="mt-6 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-sea ring-1 ring-line hover:bg-sea/5 disabled:opacity-60">Поиск</button>
+          <button @click="searchDocs" :disabled="busy.search || authBlocked" class="mt-6 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-sea ring-1 ring-line hover:bg-sea/5 disabled:opacity-60">Поиск</button>
         </div>
 
         <div class="mt-4 rounded-2xl border border-line/80 bg-white p-4">
@@ -286,7 +300,7 @@
           </label>
         </div>
 
-        <button @click="runScenario" :disabled="busy.scenario" class="mt-4 w-full rounded-xl bg-sea px-4 py-2.5 text-sm font-semibold text-white hover:bg-sea/90 disabled:opacity-60">{{ busy.scenario ? 'Считаем...' : 'Оценить сценарий' }}</button>
+        <button @click="runScenario" :disabled="busy.scenario || authBlocked" class="mt-4 w-full rounded-xl bg-sea px-4 py-2.5 text-sm font-semibold text-white hover:bg-sea/90 disabled:opacity-60">{{ busy.scenario ? 'Считаем...' : 'Оценить сценарий' }}</button>
         <p v-if="errors.scenario" class="mt-3 rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger">{{ errors.scenario }}</p>
 
         <div v-if="scenario" class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -309,8 +323,8 @@
         <div class="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <h2 class="font-display text-xl font-semibold">Шаг 6. Результаты и объяснения</h2>
           <div class="flex gap-2">
-            <button @click="loadImpacts" :disabled="busy.impacts" class="rounded-xl bg-white px-3 py-2 text-sm font-semibold text-sea ring-1 ring-line hover:bg-sea/5 disabled:opacity-60">{{ busy.impacts ? '...' : 'Обновить impacts' }}</button>
-            <button @click="loadExplain" :disabled="busy.explain" class="rounded-xl bg-white px-3 py-2 text-sm font-semibold text-sea ring-1 ring-line hover:bg-sea/5 disabled:opacity-60">{{ busy.explain ? '...' : 'Обновить explain' }}</button>
+            <button @click="loadImpacts" :disabled="busy.impacts || authBlocked" class="rounded-xl bg-white px-3 py-2 text-sm font-semibold text-sea ring-1 ring-line hover:bg-sea/5 disabled:opacity-60">{{ busy.impacts ? '...' : 'Обновить impacts' }}</button>
+            <button @click="loadExplain" :disabled="busy.explain || authBlocked" class="rounded-xl bg-white px-3 py-2 text-sm font-semibold text-sea ring-1 ring-line hover:bg-sea/5 disabled:opacity-60">{{ busy.explain ? '...' : 'Обновить explain' }}</button>
           </div>
         </div>
 
@@ -357,6 +371,10 @@
           const API = '/api/v1';
           const state = reactive({
             profileId: 'default',
+            authEnabled: false,
+            authRequired: false,
+            authToken: '',
+            authUser: '',
             horizonDays: 60,
             startBalance: 150000,
             adsDelta: -0.15,
@@ -377,12 +395,46 @@
           });
 
           const busy = reactive({ forecast:false, scenario:false, context:false, addContext:false, finance:false, signal:false, doc:false, search:false, impacts:false, explain:false });
-          const errors = reactive({ forecast:'', scenario:'', finance:'', context:'' });
+          const errors = reactive({ auth:'', forecast:'', scenario:'', finance:'', context:'' });
           const contextFieldErrors = reactive({});
           const data = reactive({ forecast:null, scenario:null, contextItems:[], impacts:[], explain:[], searchHits:[] });
 
           let financeFile = null;
           let docFile = null;
+          const AUTH_TOKEN_KEY = 'sellercash_access_token';
+
+          const parseJwtClaims = (token) => {
+            try {
+              const parts = String(token || '').split('.');
+              if (parts.length < 2) return null;
+              const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+              const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+              return JSON.parse(atob(padded));
+            } catch {
+              return null;
+            }
+          };
+
+          const setAuthToken = (token) => {
+            const clean = String(token || '').trim();
+            state.authToken = clean;
+            if (!clean) {
+              state.authUser = '';
+              localStorage.removeItem(AUTH_TOKEN_KEY);
+              return;
+            }
+            localStorage.setItem(AUTH_TOKEN_KEY, clean);
+            const claims = parseJwtClaims(clean);
+            state.authUser = claims?.preferred_username || claims?.name || claims?.sub || '';
+          };
+
+          const clearAuthToken = () => {
+            state.authToken = '';
+            state.authUser = '';
+            localStorage.removeItem(AUTH_TOKEN_KEY);
+          };
+
+          setAuthToken(localStorage.getItem(AUTH_TOKEN_KEY) || '');
 
           const moneyFmt = new Intl.NumberFormat('ru-RU', { style:'currency', currency:'RUB', maximumFractionDigits:0 });
           const money = (v) => typeof v === 'number' ? moneyFmt.format(v) : '-';
@@ -491,6 +543,7 @@
           const impacts = computed(() => data.impacts);
           const explainDrivers = computed(() => data.explain);
           const searchHits = computed(() => data.searchHits);
+          const authBlocked = computed(() => state.authEnabled && !state.authToken);
 
           const sparklinePath = computed(() => {
             const pts = data.forecast?.points?.slice(0, 20) || [];
@@ -511,9 +564,68 @@
             state.log = `${row}${state.log}`.slice(0, 14000);
           };
 
+          const fetchHealth = async () => {
+            try {
+              const res = await fetch(`${API}/health`);
+              const json = await res.json().catch(() => ({}));
+              state.authEnabled = Boolean(json?.auth_enabled);
+              state.authRequired = state.authEnabled && !state.authToken;
+              if (!state.authEnabled) {
+                errors.auth = '';
+              }
+              return json;
+            } catch (e) {
+              log('Health error', { message: String(e.message || e) });
+              return { status: 'error', auth_enabled: false };
+            }
+          };
+
+          const goToLogin = () => {
+            window.location.href = '/login';
+          };
+
+          const logout = () => {
+            clearAuthToken();
+            errors.auth = '';
+            state.authRequired = state.authEnabled;
+            data.forecast = null;
+            data.scenario = null;
+            data.contextItems = [];
+            data.impacts = [];
+            data.explain = [];
+            data.searchHits = [];
+            log('Auth logout', {});
+            if (state.authEnabled) {
+              goToLogin();
+            }
+          };
+
           const req = async (url, options = {}) => {
-            const res = await fetch(url, options);
+            if (state.authEnabled && !state.authToken) {
+              state.authRequired = true;
+              errors.auth = 'Сначала войди в систему на отдельной странице /login.';
+              goToLogin();
+              throw new Error('Требуется авторизация');
+            }
+
+            const headers = new Headers(options.headers || {});
+            if (state.authToken) {
+              headers.set('Authorization', `Bearer ${state.authToken}`);
+            }
+
+            const res = await fetch(url, { ...options, headers });
             const json = await res.json().catch(() => ({}));
+            if (res.status === 401) {
+              clearAuthToken();
+              state.authRequired = true;
+              errors.auth = 'Сессия истекла или токен недействителен. Войди в систему заново.';
+              if (state.authEnabled) {
+                goToLogin();
+              }
+              const err = new Error('Требуется авторизация');
+              err.validation_fields = {};
+              throw err;
+            }
             if (!res.ok) {
               const fieldErrors = parseValidationFieldErrors(json?.detail);
               const err = new Error(formatApiError(json?.detail, res.status, fieldErrors));
@@ -721,17 +833,29 @@
             }
           };
 
-          loadContext();
-          loadImpacts();
-          loadExplain();
+          const bootstrap = async () => {
+            await fetchHealth();
+            if (state.authEnabled && !state.authToken) {
+              errors.auth = 'Войди через Keycloak, чтобы открыть данные SellerCash.';
+              log('Auth required', { auth_enabled: true });
+              goToLogin();
+              return;
+            }
+            await loadContext();
+            await loadImpacts();
+            await loadExplain();
+          };
+
+          bootstrap();
 
           return {
             state, busy, errors,
-            forecast, scenario, contextItems, impacts, explainDrivers, searchHits,
+            forecast, scenario, contextItems, impacts, explainDrivers, searchHits, authBlocked,
             sparklinePath,
             money, pct,
             contextFieldError, inputClass,
             impactTypeLabel, impactTypeDescription, impactValueText,
+            goToLogin, logout,
             runForecast, runScenario,
             loadContext, addContext,
             onFinanceFile, importFinance,

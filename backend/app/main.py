@@ -3,6 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.api.router import api_router
 from app.core.config import get_settings
@@ -29,6 +30,7 @@ app.add_middleware(
 )
 
 app.include_router(api_router, prefix=settings.api_prefix)
+Instrumentator().instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
 
 
 @app.on_event("startup")
@@ -49,4 +51,10 @@ def on_startup() -> None:
 @app.get("/")
 def home() -> FileResponse:
     static_file = Path(__file__).parent / "static" / "index.html"
+    return FileResponse(static_file)
+
+
+@app.get("/login")
+def login_page() -> FileResponse:
+    static_file = Path(__file__).parent / "static" / "login.html"
     return FileResponse(static_file)
