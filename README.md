@@ -227,8 +227,3 @@ python -m pytest ../tests -q
 - [API](docs/API.md)
 - [Демо-сценарий](docs/DEMO.md)
 - [Roadmap](docs/MVP_ROADMAP.md)
-
-## 15. Статус
-
-**Текущий статус:** MVP-1 (архитектурно полный демонстрационный контур).  
-**Следующий этап:** MVP-2 - вероятностная калибровка, NER/шаблоны extraction 2.0, гибридный поиск (BM25 + vector), production hardening.
