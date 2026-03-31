@@ -1,0 +1,69 @@
+{
+  "realm": "sellercash",
+  "enabled": true,
+  "displayName": "SellerCash Realm",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "rememberMe": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "clients": [
+    {
+      "clientId": "sellercash-web",
+      "name": "SellerCash Web",
+      "description": "Public client for local UI and manual testing",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "http://localhost:8080/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8080"
+      ],
+      "fullScopeAllowed": true
+    },
+    {
+      "clientId": "sellercash-api",
+      "name": "SellerCash API",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "bearerOnly": true
+    },
+    {
+      "clientId": "sellercash-service",
+      "name": "SellerCash Service Client",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "sellercash-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false
+    }
+  ],
+  "users": [
+    {
+      "username": "api_demo",
+      "enabled": true,
+      "email": "api_demo@example.com",
+      "emailVerified": true,
+      "firstName": "API",
+      "lastName": "Demo",
+      "requiredActions": [],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "demo123",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

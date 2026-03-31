@@ -12,3 +12,5 @@ openpyxl==3.1.5
 pypdf==5.1.0
 httpx==0.28.1
 orjson==3.10.12
+prometheus-fastapi-instrumentator==7.0.0
+python-jose[cryptography]==3.3.0

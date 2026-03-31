@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SellerCash Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: '#17242a',
+            sea: '#0f5f7a',
+            mint: '#2f9e7b',
+            sand: '#f7f2e8',
+            line: '#d7e3de',
+            danger: '#c64a33'
+          },
+          fontFamily: {
+            ui: ['Manrope', 'sans-serif'],
+            display: ['Sora', 'sans-serif']
+          },
+          boxShadow: {
+            soft: '0 16px 40px rgba(11,48,62,.12)'
+          }
+        }
+      }
+    };
+  </script>
+  <script defer src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <style>
+    [v-cloak]{display:none}
+    body{
+      font-family:'Manrope',sans-serif;
+      background:
+        radial-gradient(1000px 650px at 5% 0%, #dff1fa, transparent 55%),
+        radial-gradient(900px 600px at 100% 0%, #e7f7ee, transparent 55%),
+        linear-gradient(180deg,#f5f8f1,#f8f4ec);
+      color:#17242a;
+      min-height:100vh;
+    }
+  </style>
+</head>
+<body class="font-ui">
+  <div id="app" v-cloak class="mx-auto flex min-h-screen w-full max-w-5xl items-center justify-center px-4">
+    <div class="grid w-full grid-cols-1 gap-4 md:grid-cols-2">
+      <section class="rounded-3xl border border-line bg-white/90 p-6 shadow-soft backdrop-blur">
+        <p class="mb-2 inline-flex rounded-full bg-sea/10 px-3 py-1 text-xs font-semibold uppercase tracking-[.16em] text-sea">SellerCash</p>
+        <h1 class="font-display text-3xl font-semibold">Вход в систему</h1>
+        <p class="mt-2 text-sm text-ink/70">Авторизация через Keycloak обязательна для доступа к данным cashflow.</p>
+
+        <div class="mt-5 space-y-3">
+          <label class="block">
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-[.12em] text-ink/60">Логин</span>
+            <input v-model.trim="state.username" class="w-full rounded-xl border border-line px-3 py-2 outline-none focus:border-mint focus:ring-2 focus:ring-mint/20" />
+          </label>
+          <label class="block">
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-[.12em] text-ink/60">Пароль</span>
+            <input v-model="state.password" type="password" class="w-full rounded-xl border border-line px-3 py-2 outline-none focus:border-mint focus:ring-2 focus:ring-mint/20" />
+          </label>
+
+          <button @click="login" :disabled="state.loading || !state.authEnabled" class="w-full rounded-xl bg-sea px-3 py-2.5 text-sm font-semibold text-white hover:bg-sea/90 disabled:opacity-60">
+            {{ state.loading ? 'Проверяем...' : 'Войти через Keycloak' }}
+          </button>
+        </div>
+
+        <p v-if="state.info" class="mt-3 rounded-xl bg-sea/10 px-3 py-2 text-sm text-sea">{{ state.info }}</p>
+        <p v-if="state.error" class="mt-3 rounded-xl bg-danger/10 px-3 py-2 text-sm text-danger">{{ state.error }}</p>
+      </section>
+
+      <section class="rounded-3xl border border-line bg-sand/80 p-6">
+        <h2 class="font-display text-xl font-semibold">Что важно</h2>
+        <ul class="mt-3 space-y-2 text-sm text-ink/80">
+          <li class="rounded-xl bg-white px-3 py-2">1. Без входа API возвращает `401`.</li>
+          <li class="rounded-xl bg-white px-3 py-2">2. Токен хранится локально в браузере.</li>
+          <li class="rounded-xl bg-white px-3 py-2">3. После входа откроется основной dashboard.</li>
+        </ul>
+        <p class="mt-4 text-xs text-ink/60">Тестовый пользователь: <b>api_demo / demo123</b></p>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const { createApp, reactive } = Vue;
+      createApp({
+        setup() {
+          const API = '/api/v1';
+          const TOKEN_KEY = 'sellercash_access_token';
+          const state = reactive({
+            username: 'api_demo',
+            password: 'demo123',
+            loading: false,
+            error: '',
+            info: '',
+            authEnabled: true
+          });
+
+          const restoreSession = async () => {
+            const token = localStorage.getItem(TOKEN_KEY);
+            if (!token) return;
+            try {
+              const res = await fetch(`${API}/context/items?seller_code=default`, {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+              if (res.ok) {
+                window.location.href = '/';
+                return;
+              }
+              localStorage.removeItem(TOKEN_KEY);
+            } catch {
+              localStorage.removeItem(TOKEN_KEY);
+            }
+          };
+
+          const detectAuthMode = async () => {
+            try {
+              const res = await fetch(`${API}/health`);
+              const json = await res.json().catch(() => ({}));
+              state.authEnabled = Boolean(json?.auth_enabled);
+              if (!state.authEnabled) {
+                state.info = 'На backend отключена авторизация. Можно открыть dashboard без логина.';
+              }
+            } catch {
+              state.info = 'Не удалось проверить режим авторизации backend.';
+            }
+          };
+
+          const login = async () => {
+            state.error = '';
+            state.info = '';
+            if (!state.authEnabled) {
+              window.location.href = '/';
+              return;
+            }
+            if (!state.username || !state.password) {
+              state.error = 'Укажи логин и пароль.';
+              return;
+            }
+
+            state.loading = true;
+            try {
+              const res = await fetch(`${API}/auth/token`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: state.username, password: state.password })
+              });
+              const json = await res.json().catch(() => ({}));
+              if (!res.ok || !json?.access_token) {
+                throw new Error(json?.detail || 'Не удалось выполнить вход');
+              }
+              localStorage.setItem(TOKEN_KEY, json.access_token);
+              window.location.href = '/';
+            } catch (e) {
+              state.error = `Ошибка входа: ${String(e.message || e)}`;
+            } finally {
+              state.loading = false;
+            }
+          };
+
+          detectAuthMode().then(restoreSession);
+
+          return { state, login };
+        }
+      }).mount('#app');
+    });
+  </script>
+</body>
+</html>

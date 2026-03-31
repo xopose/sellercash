@@ -100,6 +100,8 @@ flowchart LR
 - **Data/DB:** PostgreSQL
 - **Search (Lucene-based):** OpenSearch
 - **Document Storage:** MinIO
+- **Observability:** Prometheus + Grafana
+- **IAM / Auth:** Keycloak (OIDC, JWT)
 - **Analytics:** pandas, numpy
 - **Runtime:** Docker Compose
 - **Frontend:** Vue 3 + Tailwind (встроенный статический UI)
@@ -132,16 +134,61 @@ curl http://localhost:8080/api/v1/health
 
 - Web UI + API root: `http://localhost:8080`
 - API base: `http://localhost:8080/api/v1`
+- API metrics: `http://localhost:8080/metrics`
 - OpenSearch: `http://localhost:9200`
 - MinIO API: `http://localhost:9000`
 - MinIO Console: `http://localhost:9001`
+- Keycloak: `http://localhost:8081` (admin/admin по умолчанию)
+- Prometheus: `http://localhost:9090`
+- Grafana: `http://localhost:3001` (admin/admin по умолчанию)
 - PostgreSQL: `localhost:5432`
+
+### Включение авторизации через Keycloak
+
+По умолчанию backend требует токен (`AUTH_ENABLED=true`).
+
+Чтобы включить/настроить проверку JWT:
+
+1. В `.env` установи:
+   - `AUTH_ENABLED=true`
+   - `KEYCLOAK_REALM=sellercash`
+   - `KEYCLOAK_SERVER_URL=http://keycloak:8080`
+   - `KEYCLOAK_ISSUER=http://keycloak:8080/realms/sellercash`
+2. Перезапусти сервис:
+
+```bash
+docker compose up -d --build api keycloak
+```
+
+После этого все `api/v1` эндпоинты, кроме `GET /api/v1/health`, требуют bearer token.
+
+Если нужно временно отключить авторизацию для локальной отладки UI, установи `AUTH_ENABLED=false`.
+
+### UX потока входа
+
+- отдельная страница входа: `http://localhost:8080/login`
+- frontend получает токен через backend endpoint `POST /api/v1/auth/token`
+- после успешного входа токен сохраняется в `localStorage` и используется для `api/v1` запросов
+
+Такой поток убирает браузерные CORS-проблемы при прямом запросе в Keycloak и решает ошибку вида `Failed to fetch` на login-форме.
+
+### Что импортируется в Keycloak
+
+Realm импортируется из файла [infrastructure/keycloak/sellercash-realm.json](infrastructure/keycloak/sellercash-realm.json):
+
+- `sellercash-web` (public client для UI/ручных тестов),
+- `sellercash-api` (bearer-only client для backend),
+- `sellercash-service` (confidential client для M2M, `client_secret=sellercash-secret`).
+- тестовый пользователь `api_demo / demo123`.
+
+Если нужно заново применить realm-конфиг «с нуля», очисти volume `keycloak-db-data` и подними `keycloak` снова.
 
 ## 9. API-карта
 
 | Контур | Endpoint | Назначение |
 |---|---|---|
 | Health | `GET /api/v1/health` | Проверка доступности |
+| Auth | `POST /api/v1/auth/token` | Получение access token (password grant через backend proxy) |
 | Finance | `POST /api/v1/finance/import` | Импорт финансовой ленты |
 | Finance | `GET /api/v1/finance/events` | Просмотр денежных событий |
 | Context | `POST /api/v1/context/items` | Добавление бизнес-контекста |
@@ -155,6 +202,7 @@ curl http://localhost:8080/api/v1/health
 | Knowledge | `GET /api/v1/knowledge/search` | BM25-поиск по индексу |
 | Knowledge | `GET /api/v1/knowledge/events` | Извлеченные события |
 | Knowledge | `GET /api/v1/knowledge/impacts` | Релевантные impacts по селлеру |
+| Observability | `GET /metrics` | Prometheus-метрики API и доменные счетчики |
 
 Детальные контракты: [docs/API.md](docs/API.md)
 
@@ -191,6 +239,8 @@ curl http://localhost:8080/api/v1/health
 - извлечение событий из текста;
 - relevance + translation в параметры cashflow;
 - прием внешних сигналов (включая Interfax-like интеграции);
+- мониторинг через Prometheus и Grafana;
+- опциональная OIDC-аутентификация через Keycloak;
 - explainability и UI-демо в браузере.
 
 ## 13. Тесты

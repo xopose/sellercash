@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app.core.metrics import forecast_requests_total, scenario_requests_total
 from app.db.session import get_db
 from app.schemas.cashflow import ExplainResponse, ForecastRequest, ForecastResponse, ScenarioRequest, ScenarioResponse
 from app.services.cashflow import explain_cashflow, run_forecast, run_scenario
@@ -13,6 +14,7 @@ def forecast(
     request: ForecastRequest,
     db: Session = Depends(get_db),
 ) -> ForecastResponse:
+    forecast_requests_total.inc()
     return run_forecast(db, request)
 
 
@@ -21,6 +23,7 @@ def scenario(
     request: ScenarioRequest,
     db: Session = Depends(get_db),
 ) -> ScenarioResponse:
+    scenario_requests_total.inc()
     return run_scenario(db, request)
 
 
